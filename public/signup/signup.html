@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup Page</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="center-container">
+        <div class="card">
+            <h1>Sign Up</h1>
+            <form onsubmit="signUp(event)" id="signup-form">
+                <div class="txt_field">
+                    <input type="text" name="username" required>
+                    <span></span>
+                    <label>Name</label>
+                </div>
+
+                <div class="txt_field">
+                    <input type="email" name="emailId" required>
+                    <span></span>
+                    <label>Email ID</label>
+                </div>
+
+                <div class="txt_field">
+                    <input type="password" name="password" required>
+                    <span></span>
+                    <label>Password</label>
+                </div>
+
+                <button type="submit" id="submit">Sign Up</button>
+
+                <div class="login_link">
+                    Already a member? <a href="../login/login.html">Login</a>
+                </div>
+            </form>
+
+            <div id="message-container">
+                <ul id='listOfUsers'></ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.1.2/axios.min.js"></script>
+    <script>
+        async function signUp(event) {
+            event.preventDefault();
+
+            const signupDetails = {
+                username: event.target.username.value,
+                email: event.target.emailId.value,
+                password: event.target.password.value
+            };
+
+            try {
+                const response = await axios.post("http://localhost:4000/user/signup", signupDetails);
+
+                if (response.status === 201) {
+                    alert('Signup successful!');
+                    // window.location.href = "../login/login.html"; // Uncomment to redirect
+                } 
+                else if (response.status === 207) {
+                    showStatusMessage(response.data.message, "warning");
+                }
+            } catch (err) {
+                console.error(err);
+                const errorMsg = err.response?.data?.message || "An error occurred during signup.";
+                showStatusMessage(errorMsg, "error");
+            }
+
+            event.target.reset(); // Clear form fields
+        }
+
+        function showStatusMessage(message, type) {
+            const parentNode = document.getElementById('listOfUsers');
+            const listItem = `<li class="${type}">${message}</li>`;
+            parentNode.innerHTML = listItem; // Shows only the most recent status
+        }
+    </script>
+</body>
+</html>
