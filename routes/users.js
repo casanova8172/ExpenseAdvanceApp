@@ -11,9 +11,9 @@ const userController = require('../controller/users');
 const router = express.Router();
 
 
-router.post('/signup', userController.signup)
+router.post('/signup', userController.signup);
 
-//router.post('/login', userController.login)
+router.post('/login', userController.login);
 
 //router.post('/getExpenses/:pageNo', userAuthentication.authentication, expenseController.getExpenses);
 

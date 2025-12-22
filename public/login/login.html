@@ -43,7 +43,7 @@
 
     <script>
 
-        function logIn(event) {
+        async function logIn(event) {
             event.preventDefault();
 
             const email = event.target.emailId.value;
@@ -52,26 +52,36 @@
             const obj = {
                 email,
                 password
-            }
+            };
 
-            axios.post("http://localhost:4000/user/login", obj)
-                .then((response) => {
-                    console.log(response);
-                    localStorage.setItem('token', response.data.token);
-                    if (response.status === 200) {
-                        //window.location.href = "../expense/expense.html"
-                        // redirect('./expense.html')
-                        console.log('login  complete');
+            try {
+                const response = await axios.post("http://localhost:4000/user/login", obj);
+
+                if (response.status === 200) {
+                    alert(response.data.message);
+                    console.log('Login complete');
+                    // localStorage.setItem('token', response.data.token);
+                    // window.location.href = "../expense/expense.html";
+                }
+
+            } catch (err) {
+                // This block runs for status codes like 401, 404, and 500
+                if (err.response) {
+                    const status = err.response.status;
+                    const message = err.response.data.message;
+
+                    if (status === 404) {
+                        alert("Error 404: " + message);
+                    } else if (status === 401) {
+                        alert("Error 401: " + message);
+                    } else {
+                        alert("An error occurred: " + message);
                     }
-                    else if (response.status === 207) {
-                        showIfUserNotExists(response.data.message);
-                    }else {
-                        throw new Error('Error failed to login')
-                    }
-                })
-                .catch((err) => {
-                    console.log(err)
-                })
+                } else {
+                    console.error("Error Message:", err.message);
+                    alert("Network error or server is down.");
+                }
+            }
         }
 
         function showIfUserNotExists(user) {

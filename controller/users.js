@@ -1,21 +1,19 @@
-const User = require('../models/user');
+const User = require("../models/user");
 
 //const bcrypt = require('bcrypt');
 
 //const jwt = require('jsonwebtoken');
 
-
-exports.signup = async(req ,res,next)=>{
-
+exports.signup = async (req, res, next) => {
   try {
-      const {username, email, password} = req.body ;
+    const { username, email, password } = req.body;
 
-      if(!username || !email || !password){
-        return res.status(400).json({message:'All fields are required'})
-      }
+    if (!username || !email || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
 
-      await User.create({username, email, password});
-      res.status(201).json({message : 'successfully created user'});
+    await User.create({ username, email, password });
+    res.status(201).json({ message: "successfully created user" });
     //   const user = await User.findAll({where:{email}});
     //     if(user.length>0){
     //         return res.status(207).json({message:'User already exists'})
@@ -27,87 +25,63 @@ exports.signup = async(req ,res,next)=>{
     //           res.status(201).json({message : 'successfully created user'})
     //         })
     //     }
-
-      
-
   } catch (err) {
-      res.status(500).json(err);
+    res.status(500).json(err);
   }
+};
 
-}
+exports.login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ where: { email: email } });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.password === password) {
+      return res.status(200).json({ message: "User login sucessful" });
+    } else {
+      return res.status(401).json({ message: "User not authorized" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};
 
 
-
-
-
-
-// exports.login = async(req,res)=>{
-
-//   try{
-//     const {email,password} = req.body;
+// exports.login = async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
 
 //     console.log(password);
 
-//     const user = await User.findAll({where:{email}})
+//     const user = await User.findAll({ where: { email } });
 
-
-    
-
-//     if(user.length>0){
-//       bcrypt.compare(password, user[0].password, (err, match)=> {
-//         if(!match){
-//            return res.status(207).json({message: 'password incorrect'})
+//     if (user.length > 0) {
+//       bcrypt.compare(password, user[0].password, (err, match) => {
+//         if (!match) {
+//           return res.status(207).json({ message: "password incorrect" });
 //         }
-//         return res.status(200).json({message: 'login success',token: generateToken(user[0].id) ,isPremium:user[0].ispremiumuser})
-//     })
+//         return res
+//           .status(200)
+//           .json({
+//             message: "login success",
+//             token: generateToken(user[0].id),
+//             isPremium: user[0].ispremiumuser,
+//           });
+//       });
+//     } else {
+//       return res.status(207).json({ message: "Invalid Email " });
 //     }
-//    else{
-//     return res.status(207).json({message: 'Invalid Email '});
-//    }
-  
-
-    
-//   }
-//   catch(error){
+//   } catch (error) {
 //     res.status(500).json(error);
 //   }
-
-// }
+// };
 
 // function generateToken(id){
 //   return jwt.sign({userId:id}, 'whereistoken');
 // }
-
-
-/*
-exports.login = async(req,res)=>{
-
-  try{
-    const {email,password} = req.body;
-
-    const user = await User.findAll({where:{email,password}})
-   /// console.log(user);
-   // if(user.length==0){
-    //  console.log('yes');
-   // }
-
-
-    if(user.length>0){
-      res.status(201).json({message: 'login Success'})
-    }
-   else{
-    res.status(207).json({message: 'Invalid credentials '});
-   }
-
-    
-  }
-  catch(error){
-    res.status(500).json(error);
-  }
-
-}*/
-
-
 
 /*
 exports.signup = async (req,res,next)=>{
@@ -118,18 +92,18 @@ exports.signup = async (req,res,next)=>{
    /* User.findByPk(req.body.email).then(userEmail=>{
       if(userEmail){
         const email = req.body.email
-        
+
         const data = {
           email: email
         }
         res.status(207).json({newUserDetail: data})
       }*/
-      /*
+/*
      const findingEmail = await User.findByPk(req.body.email)
      if(findingEmail !== null){
         res.status(207).json({newUserDetail: 'Already Exists'})
      }
-     if(findingEmail ==null)    
+     if(findingEmail ==null)
       {
         const username = req.body.username;
         const email = req.body.email
@@ -161,12 +135,11 @@ exports.signup = async (req,res,next)=>{
 
 }*/
 
-
 // exports.getUsers = async (req,res,next)=>{
 //     console.log("Getting users");
 
 //     try{
-      
+
 //      const data =  await User.findAll()
 //      res.status(201).json(data);
 //     }
@@ -174,8 +147,7 @@ exports.signup = async (req,res,next)=>{
 //       console.log(error);
 //       res.status(500).json({error:error});
 //     }
-    
-   
+
 // }
 
 // exports.postAddUser = async(req, res, next) => {
@@ -202,9 +174,8 @@ exports.signup = async (req,res,next)=>{
 //   }
 // }
 
-
 // exports.deleteUser = async (req,res,next)=>{
-  
+
 //   try{
 //     let userId = req.params.userId;
 //     if(!userId){
@@ -212,37 +183,18 @@ exports.signup = async (req,res,next)=>{
 //     }
 //     await User.destroy({where:{id:userId}});
 //     res.sendStatus(200);
-    
+
 //   }
 //   catch(error){
 //     console.log(error);
 //     res.status(500).json('error occured');
 //   };
 
-
-
 // }
 
+//left side  titlebelongs to db attribute and right side belongs to const
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-  //left side  titlebelongs to db attribute and right side belongs to const
-  
-
-  /*
+/*
 router.post('/user/add-user', async (req,res,next)=>{
     console.log('hi');
     const name = req.body.name;
