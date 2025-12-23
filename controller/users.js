@@ -59,6 +59,12 @@ exports.login = async (req, res) => {
   }
 };
 
+
+
+
+
+
+
 // function generateToken(id){
 //   return jwt.sign({userId:id}, 'whereistoken');
 // }

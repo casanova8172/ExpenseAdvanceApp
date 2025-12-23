@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Expense Tracker</title>
+    <link rel="stylesheet" href="./expense.css" />
+</head>
+
+<body class="light">
+    <div id="nav">
+        <button onclick="payment(event)" id="premium">Buy Premium</button>
+        <button onclick="logout(event)" style="color: red; align-self: center;" class="logout"
+            id="logout">LogOut</button>
+        <button onclick="reportGenerete(event)" class="rep" id="report"
+            style="color: red; align-self: center;">Report</button>
+    </div>
+
+    <section class="row">
+        <div class="light" id="left">
+
+            <div class="center light">
+                <h1>Add Expense</h1>
+                <form onsubmit="saveToStorage(event)" method="POST" id="expense-form">
+
+                    <div class="text_field">
+                        <input type="text" id="ea" name="eamount" placeholder="amount" required>
+                    </div>
+                    <div class="text_field">
+                        <input type="text" id="ed" name="edescription" placeholder="description" required>
+                    </div>
+                    <div class="text_field">
+                        <input list="category" id="cl" name="category" placeholder="category">
+                        <datalist id="category">
+                            <option value="fuel"></option>
+                            <option value="Movie"></option>
+                            <option value="salary"></option>
+                            <option value="food"></option>
+                        </datalist>
+
+                    </div>
+
+                    <button class="addexpense">Add Expense</button>
+
+
+                </form>
+
+
+
+            </div>
+
+
+            <div style="text-align: center ; margin-top: 35px;">
+                <h1>Expenses</h1>
+            </div>
+            <div style="text-align: center ; margin-top: 35px;">
+                <form onsubmit="perPage(event)" id="perpage">
+                    Expenses Per Page : <input type="number" min="5" max="20" name="Items_Per_Page">
+                    <button type="submit">submit</button>
+                </form>
+            </div>
+
+            <div id="expense-div" class="light">
+
+            </div>
+            <div id="pagination">123</div>
+        </div>
+        <ul id='listOfExpenses'></ul>
+        </div>
+
+        <!-- <div id="right" class="dark">
+
+            <div style="text-align: center">
+                <h1>LeaderBoard</h1>
+            </div>
+            <li class="leaderboard">
+                <h4></h4>
+                <h4>Names</h4>
+                <h4>Expense (₹)</h4>
+            </li>
+
+        </div> -->
+
+    </section>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.1.2/axios.min.js"></script>
+    <script src="./expense.js"></script>
+</body>
+
+</html>

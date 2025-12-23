@@ -15,7 +15,7 @@ const bodyParser = require('body-parser');
 const sequelize = require('./util/database');
 
 const User = require('./models/user');
-//const Expense = require('./models/expense');
+const Expense = require('./models/expense');
 //const Order = require('./models/orders');
 //const Forgotpassword = require('./models/forgotPassword');
 //const DownloadUrl = require('./models/downloadUrls');
@@ -48,7 +48,7 @@ const userRoutes = require('./routes/users');
 
 app.use(express.json())//instead of body parson json
 
-//app.use(bodyParser.urlencoded({ extended:false })); //registers a middleware and does body parsing for us. and has a next funciton.///plugging into middlewares.
+app.use(bodyParser.urlencoded({ extended:false })); //registers a middleware and does body parsing for us. and has a next funciton.///plugging into middlewares.
 
 app.use(express.static(path.join(__dirname,'public')));
 
