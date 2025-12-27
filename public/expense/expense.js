@@ -5,7 +5,7 @@ function saveToStorage(event) {
     const eamount = event.target.eamount.value;
     const edescription = event.target.edescription.value;
     const category = event.target.category.value;
-    //const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token');
 
     const obj = {
         eamount,
@@ -13,22 +13,15 @@ function saveToStorage(event) {
         category,
     }
 
-    axios.post('http://localhost:4000/user/addExpense', obj)
+    axios.post("http://localhost:4000/user/addExpense", obj, {
+        headers: { "Authorization": token }
+    })
         .then((response) => {
             console.log(response);
             showListofRegisteredExpenses(response.data.newExpenseDetail)
         }).catch((err) => {
             console.log(err);
-        })
-
-    // axios.post("http://localhost:5000/user/addExpense", obj, { 
-    //     headers: { "Authorization": token } })
-    //     .then((response) => {
-    //     console.log(response);
-    //     showListofRegisteredExpenses(response.data.newExpenseDetail)
-    // }).catch((err) => {
-    //     console.log(err);
-    // })
+        });
 
     //clear inout fields
     document.getElementById('ed').value = '';
@@ -51,57 +44,52 @@ function showListofRegisteredExpenses(user) {
     document.getElementById('cl').value = '';
 }
 
-window.addEventListener('DOMContentLoaded', (event) => {
 
-    // event.preventDefault();
-    // let Items_Per_Page = +document.getElementById('Items_Per_Page')
-    // // Items_Per_Page = +event.target.Items_Per_Page.value;    ${page}
-    // const token = localStorage.getItem('token');
-    // let page = 1;
-    // let response = await axios.post(`http://localhost:4000/user/getExpenses/${page}`, { Items_Per_Page: Items_Per_Page }, { headers: { "Authorization": token } })
 
-    // checkIfPremiumUser();
+window.addEventListener('DOMContentLoaded', async (event) => {
+    try {
+        const token = localStorage.getItem('token');
 
-    // if (response.status === 200) {
-    //     // console.log(response.data);
-    //     //console.log(response.data.data[0]);
-    //     console.log('?????????????');
-    //     console.log(response.data);
-    //     const listOfUsers = document.getElementById('listOfExpenses')
+        // 1. URL simplified to remove the page variable
+        // 2. Changed to .get since we are no longer sending pagination metadata in a post body
+        const response = await axios.get(`http://localhost:4000/user/getExpenses`, {
+            headers: { "Authorization": token }
+        });
 
-    //     console.log(response.data.info);
-    //     listOfUsers.innerHTML = '';
-    //     for (let i = 0; i < response.data.data.length; i++) {
+        if (response.status === 200) {
+            const listOfUsers = document.getElementById('listOfExpenses');
+            listOfUsers.innerHTML = '';
 
-    //         showListofRegisteredExpenses(response.data.data[i]);
+            // 3. Logic to handle the data array
+            // If your backend now returns the array directly, use response.data
+            // If it still returns an object with a data property, use response.data.data
+            const expenses = response.data.data || response.data;
 
-    //     }
+            expenses.forEach(expense => {
+                showListofRegisteredExpenses(expense);
+            });
+        }
+    } catch (err) {
+        console.error("Error fetching expenses:", err);
+    }
+});
 
-    //     showPagination(response.data.info);
-    // }
-    // just fetch all expenses without pagination and auth
-    axios.get("http://localhost:4000/user/getExpenses")
-        .then((response) => {
-            //console.log(response.data.data[0]);
-            //checkIfPremiumUser();
-            for (let i = 0; i < response.data.data.length; i++) {
 
-                showListofRegisteredExpenses(response.data.data[i]);
-            }
-        }).catch((err) => console.log(err));
-})
 
 // function for deleteExpense
 function deleteUser(userId) {
-    //const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token');
 
-    axios.delete(`http://localhost:4000/user/deleteExpense/${userId}`)
-        .then((response) => {
-            const parentNode = document.getElementById('listOfExpenses');
-            const elem = document.getElementById(userId)
-            parentNode.removeChild(elem);
+    axios.delete(`http://localhost:4000/user/deleteExpense/${userId}`, { headers: { "Authorization": token } })
+    .then((response) => {
+        removeItemFromScreen(userId);
+    }).catch((err) => {
+        console.log(err);
+    });
+}
 
-        }).catch((err) => {
-            console.log(err);
-        })
+function removeItemFromScreen(userId) {
+    const parentNode = document.getElementById('listOfExpenses');
+    const elem = document.getElementById(userId)
+    parentNode.removeChild(elem);
 }

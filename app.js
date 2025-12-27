@@ -1,6 +1,6 @@
 const path = require('path');
 const fs = require('fs');
-//const bcrypt = require('bcrypt');
+const bcrypt = require('bcrypt');
 
 const dotenv = require('dotenv')
 //const razorpay = require('razorpay');
@@ -74,8 +74,8 @@ app.use((req, res) => {
 })
 
 
-// User.hasMany(Expense);
-// Expense.belongsTo(User);
+User.hasMany(Expense);
+Expense.belongsTo(User);
 
 // User.hasMany(Order);
 // Order.belongsTo(User);

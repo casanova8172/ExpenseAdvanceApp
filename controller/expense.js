@@ -1,14 +1,18 @@
-const Expense = require("../models/expense");
-const User = require("../models/user");
-
+const Expense = require('../models/expense');
+const User = require('../models/user')
 //const AWS = require('aws-sdk');
 
-//const Userservices = require('../service/userservices')
+const Userservices = require('../service/userservices')
 //const S3services = require('../service/s3services');
+
+
 
 // exports.downloadExpense =  async(req,res,next)=>{
 //     try{
-//         const expenses = await Userservices.getExpenses(req)   //s3 funcationality
+
+
+
+//         const expenses = await Userservices.getExpenses(req)   //s3 funcationality 
 // //req.user.getExpenses();
 //         console.log(expenses);
 
@@ -35,6 +39,8 @@ const User = require("../models/user");
 //     }
 
 // }
+
+
 
 // exports.getAllUsers = async(req,res,next)=>{
 //     try {
@@ -75,126 +81,144 @@ const User = require("../models/user");
 //     }
 // }
 
-// exports.getLeaderBoardUser = async(req,res,next)=>{
 
-//     try{
-//         if(req.user.ispremiumuser){
-//             const userId = req.params.loadUserId;
-//             const user = await User.findOne({where:{id: userId}})
+// exports.getLeaderBoardUser = async (req, res, next) => {
 
-//             const expenses = await user.getExpenses();
-//             return res.status(200).json({success:true , data: expenses })
-//         }
+//   try {
+//     if (req.user.ispremiumuser) {
+//       const userId = req.params.loadUserId;
+//       const user = await User.findOne({ where: { id: userId } })
 
+//       const expenses = await user.getExpenses();
+//       return res.status(200).json({ success: true, data: expenses })
 //     }
-//     catch(error){
-//         return res.status(500).json({success : false, data : error});
-//     }
+
+//   }
+//   catch (error) {
+//     return res.status(500).json({ success: false, data: error });
+//   }
+
 
 // }
 
-// exports.getExpenses = async (req,res,next)=>{
-//    // const {eamount,edescription,category}= req.body;
-//     let page = req.params.pageNo ||  1;
-//     console.log(page);
-//     console.log('---------------------------');
-//     let Items_Per_Page = +(req.body.Items_Per_Page)|| 5;
 
-//     console.log('************************************');
-//     console.log(Items_Per_Page);
-//     let totalItems;
 
-//    try
-//    {
-//       //  let data = await  req.user.getExpenses()
-//       //  res.status(200).json({data});
-//         let count = await Expense.count({where:{userId: req.user.id}})
-//         totalItems = count;
+// exports.getExpenses = async (req, res) => {//getExpenses
+//     try {
+//         // 1. Get and parse pagination parameters from query string
+//         const page = parseInt(req.query.page) || 1;
+//         const limit = parseInt(req.query.limit) || 5;
+//         const offset = (page - 1) * limit;
 
-//         let data = await req.user.getExpenses({offset: (page-1)*Items_Per_Page, limit: Items_Per_Page})
-//         ///console.log(data);
+//         // 2. Fetch data and total count in one go
+//         const { count: totalItems, rows: expenses } = await Expense.findAndCountAll({
+//             where: { userId: req.user.id },
+//             limit: limit,
+//             offset: offset,
+//             order: [['createdAt', 'DESC']] // Optional: show newest first
+//         });
+
+//         const lastPage = Math.ceil(totalItems / limit);
+
+//         // 3. Send structured response
 //         res.status(200).json({
-//             data,
-//             info: {
-//             currentPage: page,
-//               hasNextPage: totalItems > page * Items_Per_Page,
-//               hasPreviousPage: page > 1,
-//               nextPage: +page + 1,
-//               previousPage: +page - 1,
-//               lastPage: Math.ceil(totalItems / Items_Per_Page),
+//             expenses,
+//             pagination: {
+//                 totalItems,
+//                 currentPage: page,
+//                 hasNextPage: page < lastPage,
+//                 hasPreviousPage: page > 1,
+//                 nextPage: page + 1,
+//                 previousPage: page - 1,
+//                 lastPage: lastPage
 //             }
-//         })
+//         });
 
-//    }
-//    catch(error){
-//     console.log(error);
-//     res.status(500).json({error:error});
-//    }
-
+//     } catch (error) {
+//         console.error('Get Expenses Error:', error);
+//         res.status(500).json({ 
+//             message: "Failed to fetch expenses", 
+//             error: error.message 
+//         });
+//     }
 // };
+exports.getExpenses = async (req, res) => {// I can able to fetch all expenses without pagination
+  try {
+    const expenses = await req.user.getExpenses();
+    res.status(200).json(expenses);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 
 exports.addExpenses = async (req, res, next) => {
   const { eamount, edescription, category } = req.body;
 
   try {
-    if (!eamount || !edescription || !category) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
-    //const data = await req.user.createExpense({ eamount,edescription,category });
-    //magic funcs of seq for associations
-    //res.status(201).json({newExpenseDetail: data})
 
-    const data = await Expense.create({
+    if (!eamount || !edescription || !category) {
+      return res.status(400).json({ message: 'no fields can be empty' })
+    }
+    const data = await req.user.createExpense({
       eamount,
       edescription,
-      category,
-    });
+      category
+    })
+    //magic funcs of seq for associations
     res.status(201).json({ newExpenseDetail: data });
-  } catch (error) {
+
+    /* const data = await Expense.create({
+         eamount: eamount,
+         edescription: edescription,
+         category: category,
+     })
+     res.status(201).json({newExpenseDetail: data});*/
+  }
+  catch (error) {
     console.log(error);
     res.status(500).json({ error: error });
   }
 };
-// the getExpenses function to fetch all expenses without pagination and auth
-exports.getExpenses = async (req, res, next) => {
-  try {
-    const expenses = await Expense.findAll();
 
-    res.status(200).json({ data: expenses });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ error: error });
-  }
-};
-
-
+// delete expense working good
 exports.deleteExpenses = async (req, res, next) => {
   try {
-       let userId = req.params.userId;
-       if (!userId) {
-        res.status(400).json({ error: "id missing" });
+    const expenseId = req.params.userId;
+
+    if (!expenseId || expenseId === 'undefined') {
+      return res.status(400).json({ success: false, message: 'Expense ID is required' });
     }
-    await Expense.destroy({where:{id:userId}});
-    res.sendStatus(200);
-    // await req.user.getExpenses({ where: { id: userId } }).then((expense) => {
-    //   let findExpenses = expense[0];
-    //   findExpenses.destroy();
-    //   res.sendStatus(200);
-    // });
-   } catch (error) {
-     console.log(error);
-     res.status(500).json("error occured");
-   }
+
+    // Fetch the specific expense belonging to this user
+    // This ensures User A cannot delete User B's expense by guessing the ID
+    const expenses = await req.user.getExpenses({ where: { id: expenseId } });
+    const expense = expenses[0];
+
+    if (!expense) {
+      return res.status(404).json({ success: false, message: 'Expense not found or unauthorized' });
+    }
+
+    await expense.destroy();
+
+    return res.status(200).json({ success: true, message: "Expense deleted successfully" });
+
+  } catch (error) {
+    console.error("Delete Error:", error);
+    return res.status(500).json({ success: false, error: 'Internal Server Error' });
+  }
 };
 
-// exports.downloadAllUrl = async(req,res,next) => {
-//     try {
-//         let urls = await req.user.getDownloadurls() ;
-//         if(!urls){
-//             res.status(404).json({ message:'no urls found with this user' , success: false});
-//         }
-//         res.status(200).json({ urls , success: true })
-//     } catch (error) {
-//         res.status(500).json({ err})
-//     }
-// }
+
+
+exports.downloadAllUrl = async (req, res, next) => {
+  try {
+    let urls = await req.user.getDownloadurls();
+    if (!urls) {
+      res.status(404).json({ message: 'no urls found with this user', success: false });
+    }
+    res.status(200).json({ urls, success: true })
+  } catch (error) {
+    res.status(500).json({ err })
+  }
+}

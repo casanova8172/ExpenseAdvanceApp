@@ -62,7 +62,7 @@
 
                 if (response.status === 201) {
                     alert('Signup successful!');
-                    // window.location.href = "../login/login.html"; // Uncomment to redirect
+                    window.location.href = "../login/login.html"; // Uncomment to redirect
                 } 
                 else if (response.status === 207) {
                     showStatusMessage(response.data.message, "warning");
