@@ -3,7 +3,7 @@ const fs = require('fs');
 const bcrypt = require('bcrypt');
 
 const dotenv = require('dotenv')
-//const razorpay = require('razorpay');
+const razorpay = require('razorpay');
 
 
 
@@ -16,7 +16,7 @@ const sequelize = require('./util/database');
 
 const User = require('./models/user');
 const Expense = require('./models/expense');
-//const Order = require('./models/orders');
+const Order = require('./models/orders');
 //const Forgotpassword = require('./models/forgotPassword');
 //const DownloadUrl = require('./models/downloadUrls');
 
@@ -42,7 +42,7 @@ app.use(cors());
 const userRoutes = require('./routes/users');
 //const expenseRoutes = require('./routes/expense');
 
-//const purchaseRoutes = require('./routes/purchaseRoutes');
+const purchaseRoutes = require('./routes/purchaseRoutes');
 //const forgotRoutes =  require('./routes/password');
 
 
@@ -56,17 +56,8 @@ app.use(express.static(path.join(__dirname,'public')));
 
 
 app.use('/user', userRoutes);
-
-
-
-
-//app.use('/purchase',purchaseRoutes)
-
-
+app.use('/purchase',purchaseRoutes)
 //app.use('/expense',expenseRoutes)
-
-
-
 //app.use('/pass', forgotRoutes)
 
 app.use((req, res) => {
