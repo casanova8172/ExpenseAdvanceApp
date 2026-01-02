@@ -45,17 +45,6 @@ function showListofRegisteredExpenses(user) {
     document.getElementById('cl').value = '';
 }
 
-// Function to check if user is premium and update UI accordingly
-function checkIfPremiumUser() {
-    let userType = localStorage.getItem('user');
-
-    if (userType == "true") {
-        premiumUser();
-        reportDown();
-        getPremiumLeaderboard();
-    }
-}
-
 
 // Fetch and display expenses on page load
 window.addEventListener('DOMContentLoaded', async (event) => {
@@ -67,6 +56,8 @@ window.addEventListener('DOMContentLoaded', async (event) => {
         const response = await axios.get(`http://localhost:4000/user/getExpenses`, {
             headers: { "Authorization": token }
         });
+
+        checkIfPremiumUser();
 
         if (response.status === 200) {
             const listOfUsers = document.getElementById('listOfExpenses');
@@ -85,6 +76,23 @@ window.addEventListener('DOMContentLoaded', async (event) => {
         console.error("Error fetching expenses:", err);
     }
 });
+
+// Function to check if user is premium and update UI accordingly
+function checkIfPremiumUser() {
+    let userType = localStorage.getItem('user');
+
+    if (userType == "true") {
+        premiumUser();
+        reportDown();
+        getPremiumLeaderboard();
+    }
+}
+
+// Function to download expense report
+function reportDown() {
+    const down = document.getElementById('report');
+    down.innerHTML = 'report';
+}
 
 
 
@@ -148,7 +156,7 @@ async function payment(e) {
                 .then(() => {
                     localStorage.setItem('user', true);
                     premiumUser();
-                    //getPremiumLeaderboard();
+                    getPremiumLeaderboard();
                     alert('You are a Premium User Now')
                 }).catch(() => {
                     alert('Something went wrong. Try Again!!!')
@@ -179,19 +187,20 @@ async function payment(e) {
 
 // Function to handle premium user UI changes
 function premiumUser() {
-    const premium = document.getElementById('premium');
-    premium.innerHTML = 'Its Premium Account'
+    // 1. Update Premium Status Text
+    const premiumLabel = document.getElementById('premium');
+    if (premiumLabel) {
+        premiumLabel.innerHTML = '✨ Premium Account';
+        premiumLabel.style.color = '#0e0d0dff'; // Gold color for premium feel
+    }
 
     document.body.classList.remove('light');
-    document.body.classList.add('dark');
-    document.getElementsByClassName('center')[0].classList.remove('light');
-    document.getElementsByClassName('center')[0].classList.add('dark');
-    document.getElementById('expense-div').classList.remove('light');
-    document.getElementById('expense-div').classList.add('dark');
-    document.getElementById('left').classList.remove('light');
-    document.getElementById('left').classList.add('dark');
-    document.getElementsByTagName('input')[0].classList.add('dark');
-    document.getElementById('right').style = 'display:block';
+    document.body.classList.add('premium-mode');
+
+    const rightSection = document.getElementById('right');
+    if (rightSection) {
+        rightSection.style.display = 'block';
+    }
 }
 
 
@@ -202,13 +211,10 @@ async function getPremiumLeaderboard() {
         const response = await axios.get('http://localhost:4000/expense/premiums', { headers: { 'Authorization': token } })
 
         if (response.data.success) {
-            console.log(response);
             if (response.data.data.length > 0) {
                 response.data.data.sort((a, b) => {
-                    return a.totalExpense - b.totalExpense;
+                    return b.totalExpense - a.totalExpense;
                 });
-                console.log(response.data.data[0].user.username);
-                console.log(response.data.data[0].user)
 
 
                 response.data.data.map((user, id) => {  //transform each element of an array and creates a new array out of the arguement which
@@ -221,6 +227,18 @@ async function getPremiumLeaderboard() {
     } catch (err) {
         console.log(err);
     }
+}
+
+// Function to display each user in the leaderboard
+function showLeaderboard(user, id) {
+    const leaderboardDiv = document.getElementById('right')
+    let child = `<li class="leaderboardList">
+                    <p class="sno">${id + 1} </p>
+                    <p class="name" id="user" onclick="openUserExpenses('${user.user.id}')">${user.user.username}</p>
+                    <p class="name">${user.totalExpense}</p>
+            </li>`
+
+    leaderboardDiv.innerHTML += child
 }
 
 
