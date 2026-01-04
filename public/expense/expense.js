@@ -77,6 +77,7 @@ window.addEventListener('DOMContentLoaded', async (event) => {
     }
 });
 
+
 // Function to check if user is premium and update UI accordingly
 function checkIfPremiumUser() {
     let userType = localStorage.getItem('user');
@@ -210,19 +211,12 @@ async function getPremiumLeaderboard() {
     try {
         const response = await axios.get('http://localhost:4000/expense/premiums', { headers: { 'Authorization': token } })
 
-        if (response.data.success) {
-            if (response.data.data.length > 0) {
-                response.data.data.sort((a, b) => {
-                    return b.totalExpense - a.totalExpense;
-                });
+        console.log("response:......", response.data.data);
 
-
-                response.data.data.map((user, id) => {  //transform each element of an array and creates a new array out of the arguement which
-                    console.log(id);                       //we are passing
-                    showLeaderboard(user, id);
-                })
-
-            }
+        if (response.data.success && response.data.data.length > 0) {
+            response.data.data.map((user, id) => {
+                showLeaderboard(user, id);
+            })
         }
     } catch (err) {
         console.log(err);
@@ -230,11 +224,11 @@ async function getPremiumLeaderboard() {
 }
 
 // Function to display each user in the leaderboard
-function showLeaderboard(user, id) {
+function showLeaderboard(user, index) {
     const leaderboardDiv = document.getElementById('right')
     let child = `<li class="leaderboardList">
-                    <p class="sno">${id + 1} </p>
-                    <p class="name" id="user" onclick="openUserExpenses('${user.user.id}')">${user.user.username}</p>
+                    <p class="sno">${index + 1} </p>
+                    <p class="name" id="user" onclick="openUserExpenses('${user.id}')">${user.username}</p>
                     <p class="name">${user.totalExpense}</p>
             </li>`
 

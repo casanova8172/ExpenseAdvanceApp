@@ -2,81 +2,46 @@ const Expense = require('../models/expense');
 const User = require('../models/user')
 //const AWS = require('aws-sdk');
 
-const Userservices = require('../service/userservices')
+const Userservices = require('../service/userservices');
+const Sequelize = require('sequelize');
 //const S3services = require('../service/s3services');
+const sequelize = require('../util/database');
 
 
 
-// exports.downloadExpense =  async(req,res,next)=>{
-//     try{
-
-
-
-//         const expenses = await Userservices.getExpenses(req)   //s3 funcationality 
-// //req.user.getExpenses();
-//         console.log(expenses);
-
-//         const stringyfyExpenses = JSON.stringify(expenses);
-//         //for creating a txt file we have to stringify it
-//         //because is an array rightnow
-
-//         const userId = req.user.id;
-
-//         const filename = `Expense${userId}/${new Date()}.txt`;
-
-//         const fileURL = await S3services.uploadToS3(stringyfyExpenses, filename);
-
-//         const downloadUrlData = await req.user.createDownloadurl({
-//             fileURL: fileURL,
-//             filename
-//         })
-
-//         res.status(200).json({fileURL,downloadUrlData, success:true})
-
-//     }
-//     catch(error){
-//          res.status(500).json({fileURL: '', success:false})
-//     }
-
-// }
-
-
-//get all users for leaderboard
+// Optimized leaderboard fetching function
 exports.getAllUsers = async (req, res, next) => {
   try {
-    console.log(req.user.ispremiumuser);
-
-    if (req.user.ispremiumuser) {
-      console.log("into getall Users");
-      let leaderboard = [];
-      let users = await User.findAll({ attributes: ['id', 'username', 'email'] })
-
-      console.log(users);
-
-      for (let i = 0; i < users.length; i++) {
-        let expenses = await users[i].getExpenses();
-
-        let totalExpense = 0;
-        for (let j = 0; j < expenses.length; j++) {
-          totalExpense += expenses[j].eamount
-        }
-    
-        let userObj = {
-          user: users[i],
-          expenses,
-          totalExpense
-        }
-        leaderboard.push(userObj);
-      }
-      return res.status(200).json({ success: true, data: leaderboard });
+    if (!req.user.ispremiumuser) {
+      return res.status(403).json({ message: 'User is not a premium user' });
     }
 
-    return res.status(400).json({ message: 'user is not premium user' });
+    //Optimized Query: Fetch users and their total expense sum in ONE go
+    const leaderboard = await User.findAll({
+      attributes: [
+        'id', 
+        'username', 
+        // Create a virtual column for the sum of expenses
+        [sequelize.fn('sum', sequelize.col('expenses.eamount')), 'totalExpense']
+      ],
+      include: [
+        {
+          model: Expense,
+          attributes: [] // We don't need the individual expense rows, just the sum
+        }
+      ],
+      group: ['User.id'], // Group by user id to get individual sums
+      order: [[sequelize.literal('totalExpense'), 'DESC']] // Sort by highest spender
+    });
+
+    return res.status(200).json({ success: true, data: leaderboard });
 
   } catch (error) {
-    res.status(500).json({ success: false, data: error });
+    console.error(error);
+    res.status(500).json({ success: false, error: 'Internal Server Error' });
   }
-}
+};
+
 
 
 // exports.getLeaderBoardUser = async (req, res, next) => {
@@ -139,7 +104,10 @@ exports.getAllUsers = async (req, res, next) => {
 //         });
 //     }
 // };
-exports.getExpenses = async (req, res) => {// I can able to fetch all expenses without pagination
+
+
+// I can able to fetch all expenses without pagination
+exports.getExpenses = async (req, res) => {
   try {
     const expenses = await req.user.getExpenses();
     res.status(200).json(expenses);
@@ -148,7 +116,7 @@ exports.getExpenses = async (req, res) => {// I can able to fetch all expenses w
   }
 };
 
-
+// add expenses working good
 exports.addExpenses = async (req, res, next) => {
   const { eamount, edescription, category } = req.body;
 

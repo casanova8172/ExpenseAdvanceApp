@@ -1,4 +1,3 @@
-const path = require('path');
 const expenseController = require('../controller/expense');
 
 const middlewareAuthentication = require('../middleware/auth')
