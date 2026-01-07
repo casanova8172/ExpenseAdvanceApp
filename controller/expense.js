@@ -6,7 +6,7 @@ const Userservices = require('../service/userservices');
 const Sequelize = require('sequelize');
 //const S3services = require('../service/s3services');
 const sequelize = require('../util/database');
-
+const { categorizeExpense } = require('../service/aiService');
 
 
 // Optimized leaderboard fetching function
@@ -19,8 +19,8 @@ exports.getAllUsers = async (req, res, next) => {
     //Optimized Query: Fetch users and their total expense sum in ONE go
     const leaderboard = await User.findAll({
       attributes: [
-        'id', 
-        'username', 
+        'id',
+        'username',
         // Create a virtual column for the sum of expenses
         [sequelize.fn('sum', sequelize.col('expenses.eamount')), 'totalExpense']
       ],
@@ -43,25 +43,23 @@ exports.getAllUsers = async (req, res, next) => {
 };
 
 
+// Fetch expenses of a specific user for leaderboard details
+exports.getLeaderBoardUser = async (req, res, next) => {
 
-// exports.getLeaderBoardUser = async (req, res, next) => {
+  try {
+    if (req.user.ispremiumuser) {
+      const userId = req.params.loadUserId;
+      const user = await User.findOne({ where: { id: userId } })
 
-//   try {
-//     if (req.user.ispremiumuser) {
-//       const userId = req.params.loadUserId;
-//       const user = await User.findOne({ where: { id: userId } })
+      const expenses = await user.getExpenses();
+      return res.status(200).json({ success: true, data: expenses })
+    }
 
-//       const expenses = await user.getExpenses();
-//       return res.status(200).json({ success: true, data: expenses })
-//     }
-
-//   }
-//   catch (error) {
-//     return res.status(500).json({ success: false, data: error });
-//   }
-
-
-// }
+  }
+  catch (error) {
+    return res.status(500).json({ success: false, data: error });
+  }
+}
 
 
 
@@ -116,35 +114,35 @@ exports.getExpenses = async (req, res) => {
   }
 };
 
-// add expenses working good
+
+// add expenses working good with AI category prediction
 exports.addExpenses = async (req, res, next) => {
-  const { eamount, edescription, category } = req.body;
+  const t = await sequelize.transaction(); // start transaction
 
   try {
+    const { eamount, edescription } = req.body;
+
+    // AI predicts the category
+    const category = await categorizeExpense(edescription);
 
     if (!eamount || !edescription || !category) {
-      return res.status(400).json({ message: 'no fields can be empty' })
+      await t.rollback();
+      return res.status(400).json({ message: 'no fields can be empty' });
     }
-    const data = await req.user.createExpense({
-      eamount,
-      edescription,
-      category
-    })
-    //magic funcs of seq for associations
-    res.status(201).json({ newExpenseDetail: data });
 
-    /* const data = await Expense.create({
-         eamount: eamount,
-         edescription: edescription,
-         category: category,
-     })
-     res.status(201).json({newExpenseDetail: data});*/
-  }
-  catch (error) {
-    console.log(error);
-    res.status(500).json({ error: error });
+    const data = await req.user.createExpense({ eamount, edescription, category }, {transaction:t });
+
+    await t.commit(); // commit if everything is successful
+
+    res.status(201).json({ newExpenseDetail: data });
+  } catch (error) {
+    await t.rollback(); // rollback on error
+    console.error(error);
+    res.status(500).json({ error: error.message });
   }
 };
+
+
 
 // delete expense working good
 exports.deleteExpenses = async (req, res, next) => {

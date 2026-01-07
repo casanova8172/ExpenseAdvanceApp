@@ -11,7 +11,7 @@ const router = express.Router();
 
 router.get('/premiums', middlewareAuthentication.authentication, expenseController.getAllUsers)
 
-//router.get('/getInfo/:loadUserId', middlewareAuthentication.authentication, expenseController.getLeaderBoardUser)
+router.get('/getInfo/:loadUserId', middlewareAuthentication.authentication, expenseController.getLeaderBoardUser)
 
 //router.get('/download', middlewareAuthentication.authentication, expenseController.downloadExpense)
 
