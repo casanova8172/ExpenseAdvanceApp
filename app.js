@@ -17,7 +17,7 @@ const sequelize = require('./util/database');
 const User = require('./models/user');
 const Expense = require('./models/expense');
 const Order = require('./models/orders');
-//const Forgotpassword = require('./models/forgotPassword');
+const Forgotpassword = require('./models/forgotPass');
 //const DownloadUrl = require('./models/downloadUrls');
 
 
@@ -43,7 +43,7 @@ const userRoutes = require('./routes/users');
 const expenseRoutes = require('./routes/expense');
 
 const purchaseRoutes = require('./routes/purchaseRoutes');
-//const forgotRoutes =  require('./routes/password');
+const forgotRoutes =  require('./routes/password');
 
 
 app.use(express.json())//instead of body parson json
@@ -58,7 +58,7 @@ app.use(express.static(path.join(__dirname,'public')));
 app.use('/user', userRoutes);
 app.use('/purchase',purchaseRoutes)
 app.use('/expense',expenseRoutes)
-//app.use('/pass', forgotRoutes)
+app.use('/pass', forgotRoutes)
 
 app.use((req, res) => {
     res.sendFile(path.join(__dirname, `public/${req.url}`))
@@ -71,8 +71,8 @@ Expense.belongsTo(User);
 User.hasMany(Order);
 Order.belongsTo(User);
 
-// User.hasMany(Forgotpassword);
-// Forgotpassword.belongsTo(User);
+User.hasMany(Forgotpassword);
+Forgotpassword.belongsTo(User);
 
 // User.hasMany(DownloadUrl);
 // DownloadUrl.belongsTo(User;
